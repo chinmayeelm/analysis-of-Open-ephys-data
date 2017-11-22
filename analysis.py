@@ -5,25 +5,11 @@ Code to analyse Open-ephys recording data stored in hdf5 file format
 
 import h5py
 import numpy as np
-import scipy.signal
+import scipy
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
-# from scipy.signal import butter, lfilter
+from scipy.signal import butter, filtfilt
 
-'''
-def butter_bandpass(lowcut, highcut, fs, order=5):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
-    return b, a
-
-
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-'''
 
 f = h5py.File('../OEdata/2017-11-10_CHresponse/experiment_1.nwb', 'r')
 
@@ -33,15 +19,15 @@ time = f["acquisition"]["timeseries"]["continuous"]["processor100_100"]["recordi
 
 rec = data[:, 0]
 
-order = 6
+order = 5
 fs = 30000.0
 nyq = 0.5 * fs
-lowcut = 150.0 * 2 * np.pi / nyq
-highcut = 1000.0 * 2 * np.pi / nyq
+lowcut = 150.0/nyq
+highcut = 1000.0/nyq
 
-b, a = scipy.signal.butter(
+b, a = butter(
     order, [lowcut, highcut], btype='bandpass', analog=False, output='ba')
-filtered_data = scipy.signal.lfilter(b, a, rec, zi=None)
+filtered_data = filtfilt(b, a, rec)
 
 # filtered_data = butter_bandpass_filter(rec, lowcut, highcut, fs, order=6)
 
